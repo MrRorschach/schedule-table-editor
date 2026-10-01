@@ -947,7 +947,9 @@
                 h2.classList.add('editable-cell', 'p-1', 'rounded');
                 h2.oninput = () => {
                     tableData.title = h2.innerText.trim();
-                    syncAll();
+                    // Don't re-render the canvas while typing, or the caret is lost
+                    renderLivePreview();
+                    updateCodeOutput();
                 };
             }
 
@@ -1191,6 +1193,9 @@
                 setActiveTab(tabCode, panelCode);
                 updateCodeOutput();
             });
+
+            // Visual Canvas is the default tab, so render and bind it on load
+            setActiveTab(tabWysiwyg, panelWysiwyg);
         }
 
         // Initialize application logic on window load
