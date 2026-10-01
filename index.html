@@ -889,15 +889,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
                             <div class="md:col-span-5">
                                 <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name & Dates</label>
-                                <input type="text" value="${escapeHtml(sess.name)}" onchange="updateSession(${sIdx}, ${rIdx}, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                                <input type="text" value="${escapeHtml(sess.name)}" oninput="updateSession(${sIdx}, ${rIdx}, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
                             </div>
                             <div class="md:col-span-3">
                                 <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
-                                <input type="text" value="${escapeHtml(sess.opens)}" onchange="updateSession(${sIdx}, ${rIdx}, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                                <input type="text" value="${escapeHtml(sess.opens)}" oninput="updateSession(${sIdx}, ${rIdx}, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
                             </div>
                             <div class="md:col-span-3">
                                 <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
-                                <input type="text" value="${escapeHtml(sess.closes)}" onchange="updateSession(${sIdx}, ${rIdx}, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                                <input type="text" value="${escapeHtml(sess.closes)}" oninput="updateSession(${sIdx}, ${rIdx}, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
                             </div>
                             <div class="md:col-span-1 flex justify-end">
                                 <button type="button" onclick="deleteSession(${sIdx}, ${rIdx})" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
@@ -912,7 +912,7 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-3 flex-1 max-w-sm">
                             <i class="fa-solid fa-calendar-days text-blue-600"></i>
-                            <input type="text" value="${escapeHtml(sem.name)}" onchange="updateSemesterName(${sIdx}, this.value)" class="text-base font-bold text-slate-800 px-2 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 w-full" placeholder="Semester Name (e.g., Fall 2026)">
+                            <input type="text" value="${escapeHtml(sem.name)}" oninput="updateSemesterName(${sIdx}, this.value)" class="text-base font-bold text-slate-800 px-2 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 w-full" placeholder="Semester Name (e.g., Fall 2026)">
                         </div>
                         <button type="button" onclick="deleteSemester(${sIdx})" class="text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded transition flex items-center gap-1">
                             <i class="fa-solid fa-trash"></i> Delete Block
@@ -1005,7 +1005,7 @@
                 opens: "TBD",
                 closes: "TBD"
             });
-            syncAll();
+            refreshStructure();
         }
 
         function deleteSession(sIdx, rIdx) {
@@ -1014,7 +1014,7 @@
                 return;
             }
             tableData.semesters[sIdx].sessions.splice(rIdx, 1);
-            syncAll();
+            refreshStructure();
         }
 
         function addSemester() {
@@ -1024,7 +1024,7 @@
                     { name: "12 Week session: May 1 - August 1", opens: "March 1", closes: "May 5" }
                 ]
             });
-            syncAll();
+            refreshStructure();
         }
 
         function deleteSemester(sIdx) {
@@ -1033,6 +1033,12 @@
                 return;
             }
             tableData.semesters.splice(sIdx, 1);
+            refreshStructure();
+        }
+
+        // Re-render the form cards after rows/blocks are added or removed, then sync outputs
+        function refreshStructure() {
+            renderFormMode();
             syncAll();
         }
 
@@ -1220,16 +1226,14 @@
 
             document.getElementById('btn-reset').addEventListener('click', () => {
                 parseHTMLToState(INITIAL_HTML);
-                renderFormMode();
-                syncAll();
+                refreshStructure();
                 showToast("Reset to initial schedule table", "fa-rotate-left", "text-blue-400");
             });
 
             document.getElementById('btn-import-html').addEventListener('click', () => {
                 const raw = document.getElementById('raw-code-textarea').value;
                 parseHTMLToState(raw);
-                renderFormMode();
-                syncAll();
+                refreshStructure();
                 showToast("HTML re-imported successfully!");
             });
 
