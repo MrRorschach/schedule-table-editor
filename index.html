@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WYSIWYG Table Editor for Class Schedules</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Highlight editable elements on hover in Visual Mode */
+        .editable-cell {
+            transition: background-color 0.15s ease, outline 0.15s ease;
+            position: relative;
+        }
+
+        .editable-cell:hover {
+            background-color: rgba(59, 130, 246, 0.08) !important;
+            outline: 2px dashed #3b82f6;
+            outline-offset: -2px;
+            cursor: text;
+        }
+
+        .editable-cell:focus {
+            background-color: #ffffff !important;
+            outline: 2px solid #2563eb !important;
+            outline-offset: -2px;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Styling for rendered table inside editor preview & live output to ensure clear visual boundaries */
+        #rendered-table-container table,
+        #live-preview-box table {
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            width: 100%;
+            border: 1px solid #cbd5e1;
+        }
+
+        #rendered-table-container table td,
+        #rendered-table-container table th,
+        #live-preview-box table td,
+        #live-preview-box table th {
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            vertical-align: top;
+        }
+
+        /* Visual enhancement for live preview links & hover effects */
+        #live-preview-box table a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        #live-preview-box table tr:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.sticky{position:sticky}.inset-0{inset:0px}.bottom-5{bottom:1.25rem}.right-5{right:1.25rem}.top-0{top:0px}.z-30{z-index:30}.z-50{z-index:50}.mx-1{margin-left:0.25rem;margin-right:0.25rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-0\.5{margin-bottom:0.125rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-16{height:4rem}.h-4{height:1rem}.min-h-\[60px\]{min-height:60px}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-px{width:1px}.max-w-7xl{max-width:80rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.translate-y-20{--tw-translate-y:5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-dashed{border-style:dashed}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-blue-50\/50{background-color:rgb(239 246 255 / 0.5)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-300{--tw-bg-opacity:1;background-color:rgb(203 213 225 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-50\/80{background-color:rgb(248 250 252 / 0.8)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/50{background-color:rgb(15 23 42 / 0.5)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pb-3{padding-bottom:0.75rem}.pt-2{padding-top:0.5rem}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[11px\]{font-size:11px}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-tight{line-height:1.25}.tracking-wider{letter-spacing:0.05em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-blue-500{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-rose-600{--tw-text-opacity:1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-rose-500{--tw-text-opacity:1;color:rgb(244 63 94 / var(--tw-text-opacity, 1))}.opacity-0{opacity:0}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.duration-300{transition-duration:300ms}.hover\:border-blue-500:hover{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.hover\:bg-blue-50:hover{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-50:hover{--tw-bg-opacity:1;background-color:rgb(255 241 242 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-300:hover{--tw-bg-opacity:1;background-color:rgb(203 213 225 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:text-blue-800:hover{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-rose-700:hover{--tw-text-opacity:1;color:rgb(190 18 60 / var(--tw-text-opacity, 1))}.focus\:bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-blue-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(59 130 246 / var(--tw-ring-opacity, 1))}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.sm\:p-6{padding:1.5rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:col-span-1{grid-column:span 1 / span 1}.md\:col-span-3{grid-column:span 3 / span 3}.md\:col-span-5{grid-column:span 5 / span 5}.md\:w-auto{width:auto}.md\:flex-none{flex:none}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}}@media (min-width: 1024px){.lg\:col-span-12{grid-column:span 12 / span 12}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:px-8{padding-left:2rem;padding-right:2rem}}</style></head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600 rounded-lg text-white">
+                    <i class="fa-solid fa-table-cells text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Schedule Table Editor</h1>
+                    <p class="text-xs text-slate-400">Non-technical WYSIWYG &amp; HTML Generator</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="btn-reset" class="px-3 py-1.5 text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                    <span class="hidden sm:inline">Reset Original</span>
+                </button>
+                <button id="btn-copy-code" class="px-4 py-2 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-md shadow transition flex items-center gap-2">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>Copy HTML Code</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-message" class="text-sm font-medium">HTML copied to clipboard!</span>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
+
+        <!-- Mode Selector & Formatting Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+            
+            <!-- View Mode Switcher -->
+            <div class="inline-flex p-1 bg-slate-100 rounded-lg w-full md:w-auto">
+                <button id="tab-structured" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 text-slate-600">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Simple Form Builder</span>
+                </button>
+                <button id="tab-wysiwyg" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 hover:text-slate-900 bg-white text-blue-600 shadow-sm">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Visual Canvas Editor</span>
+                </button>
+                <button id="tab-code" class="flex-1 md:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Raw HTML Code</span>
+                </button>
+            </div>
+
+            <!-- WYSIWYG Contextual Toolbar (Active during visual editing) -->
+            <div id="wysiwyg-toolbar" class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 overflow-x-auto w-full md:w-auto">
+                <span class="text-xs text-slate-400 px-2 font-medium">Text Tools:</span>
+                <button type="button" onclick="formatText('bold')" class="p-2 text-slate-700 hover:bg-slate-200 rounded text-xs font-bold transition" title="Bold Selected Text">
+                    <i class="fa-solid fa-bold"></i>
+                </button>
+                <button type="button" onclick="formatText('italic')" class="p-2 text-slate-700 hover:bg-slate-200 rounded text-xs transition" title="Italicize Selected Text">
+                    <i class="fa-solid fa-italic"></i>
+                </button>
+                <button type="button" onclick="openLinkModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded text-xs transition" title="Insert / Edit Link">
+                    <i class="fa-solid fa-link"></i>
+                </button>
+                <button type="button" onclick="formatText('unlink')" class="p-2 text-rose-600 hover:bg-rose-50 rounded text-xs transition" title="Remove Link">
+                    <i class="fa-solid fa-link-slash"></i>
+                </button>
+                <div class="h-4 w-px bg-slate-300 mx-1"></div>
+                <button type="button" onclick="formatText('removeFormat')" class="p-2 text-slate-500 hover:bg-slate-200 rounded text-xs transition" title="Clear Formatting">
+                    <i class="fa-solid fa-eraser"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Workspace Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+
+            <!-- LEFT/MAIN WORKSPACE: Active Editor Pane (8 cols on lg) -->
+            <div class="lg:col-span-12 flex flex-col gap-6">
+
+                <!-- 1. STRUCTURED FORM BUILDER MODE -->
+                <div id="panel-structured" class="space-y-6 hidden">
+                    
+                    <!-- Title & Header Settings -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i class="fa-solid fa-heading text-blue-500"></i> Section Heading
+                        </h2>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Table Main Title</label>
+                            <input type="text" id="input-title" class="w-full text-lg font-bold px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Dates for Classes and Registration">
+                        </div>
+                    </div>
+
+                    <!-- Column Headers Settings -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i class="fa-solid fa-table-columns text-blue-500"></i> Table Headers (4 Columns)
+                        </h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Col 1 Title</label>
+                                <input type="text" id="hdr-0" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-md font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Col 2 Title</label>
+                                <input type="text" id="hdr-1" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-md font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Col 3 Title</label>
+                                <input type="text" id="hdr-2" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-md font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Col 4 Title</label>
+                                <input type="text" id="hdr-3" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-md font-medium">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Semester Sections Container -->
+                    <div id="semester-sections-container" class="space-y-6"><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3 flex-1 max-w-sm">
+                            <i class="fa-solid fa-calendar-days text-blue-600"></i>
+                            <input type="text" value="Fall 2026" onchange="updateSemesterName(0, this.value)" class="text-base font-bold text-slate-800 px-2 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 w-full" placeholder="Semester Name (e.g., Fall 2026)">
+                        </div>
+                        <button type="button" onclick="deleteSemester(0)" class="text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash"></i> Delete Block
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="16 Week session: August 24 - December 10" onchange="updateSession(0, 0, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="May 11, 2026" onchange="updateSession(0, 0, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="August 27, 2026" onchange="updateSession(0, 0, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(0, 0)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="12 Week session: September 21 - December 10" onchange="updateSession(0, 1, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="May 11, 2026" onchange="updateSession(0, 1, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="September 24, 2026" onchange="updateSession(0, 1, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(0, 1)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="8 Week session: August 24 - October 15" onchange="updateSession(0, 2, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="May 11, 2026" onchange="updateSession(0, 2, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="August 27, 2026" onchange="updateSession(0, 2, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(0, 2)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="8 Week session: October 19 - December 10" onchange="updateSession(0, 3, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="May 11, 2026" onchange="updateSession(0, 3, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="October 21, 2026" onchange="updateSession(0, 3, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(0, 3)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                    </div>
+
+                    <button type="button" onclick="addSession(0)" class="text-xs font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus text-xs"></i> Add Session Row
+                    </button>
+                </div><div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3 flex-1 max-w-sm">
+                            <i class="fa-solid fa-calendar-days text-blue-600"></i>
+                            <input type="text" value="Spring 2027" onchange="updateSemesterName(1, this.value)" class="text-base font-bold text-slate-800 px-2 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 w-full" placeholder="Semester Name (e.g., Fall 2026)">
+                        </div>
+                        <button type="button" onclick="deleteSemester(1)" class="text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash"></i> Delete Block
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="8 Week session: January 19 - March 14" onchange="updateSession(1, 0, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="October 12, 2026" onchange="updateSession(1, 0, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="January 21, 2027" onchange="updateSession(1, 0, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(1, 0)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="16 Week session: January 19 - May 16" onchange="updateSession(1, 1, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="October 12, 2026" onchange="updateSession(1, 1, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="January 21, 2027" onchange="updateSession(1, 1, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(1, 1)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="12 Week session: February 15 - May 16" onchange="updateSession(1, 2, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="October 12, 2026" onchange="updateSession(1, 2, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="February 16, 2027" onchange="updateSession(1, 2, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(1, 2)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name &amp; Dates</label>
+                                <input type="text" value="8 Week session: March 22 - May 16" onchange="updateSession(1, 3, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="October 12, 2026" onchange="updateSession(1, 3, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="March 23, 2027" onchange="updateSession(1, 3, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(1, 3)" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                    </div>
+
+                    <button type="button" onclick="addSession(1)" class="text-xs font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus text-xs"></i> Add Session Row
+                    </button>
+                </div></div>
+
+                    <!-- Add New Semester Button -->
+                    <button type="button" id="btn-add-semester" class="w-full py-3 border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 text-blue-700 font-semibold rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Add New Semester Block</span>
+                    </button>
+
+                    <!-- Footer Note Block -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
+                        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i class="fa-solid fa-circle-info text-blue-500"></i> Bottom Footer Note (Spans all columns)
+                        </h2>
+                        <p class="text-xs text-slate-500">Supports text and inline links. Edit visually below or standard HTML formatting.</p>
+                        <div id="input-footer-note" contenteditable="true" class="min-h-[60px] p-3 border border-slate-300 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-slate-700">*Credit students can find their <a href="https://admissions.austincc.edu/registration/registration-important-dates/">first date of registration here</a>.For late registration <a href="https://liberalarts.austincc.edu/esol/wp-content/uploads/sites/3/2023/01/ESOL_Contact_Flyer.pdf">visit the ESOL department</a> or email <a href="mailto:ESOL@austincc.edu">ESOL@austincc.edu</a></div>
+                    </div>
+
+                </div>
+
+                <!-- 2. VISUAL CANVAS EDITOR MODE -->
+                <div id="panel-wysiwyg" class="space-y-4">
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600 text-sm"></i>
+                        <span><strong>Tip:</strong> Click directly into any table cell or title to edit text. Highlight text to use formatting toolbar above.</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 overflow-x-auto">
+                        <!-- Direct Editable Canvas -->
+                        <div id="rendered-table-container"><h2 contenteditable="true" class="editable-cell p-1 rounded"><strong>Dates for Classes and Registration</strong></h2>
+<table dir="ltr" style="height: 458px;" border="1" width="601" cellspacing="0" cellpadding="0"><colgroup> <col width="143"> <col width="465"> <col width="163"> <col width="163"> </colgroup>
+<tbody>
+<tr>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Semester&quot;}" contenteditable="true" class="editable-cell">Semester</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Sessions&quot;}" contenteditable="true" class="editable-cell">Session</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Opens&quot;}" contenteditable="true" class="editable-cell">*Registration Opens</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Closes&quot;}" contenteditable="true" class="editable-cell">Registration Closes</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4" contenteditable="true" class="editable-cell">Fall 2026</td>
+<td contenteditable="true" class="editable-cell">16 Week session: August 24 - December 10</td>
+<td contenteditable="true" class="editable-cell">May 11, 2026</td>
+<td contenteditable="true" class="editable-cell">August 27, 2026</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">12 Week session: September 21 - December 10</td>
+<td contenteditable="true" class="editable-cell">May 11, 2026</td>
+<td contenteditable="true" class="editable-cell">September 24, 2026</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">8 Week session: August 24 - October 15</td>
+<td contenteditable="true" class="editable-cell">May 11, 2026</td>
+<td contenteditable="true" class="editable-cell">August 27, 2026</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">8 Week session: October 19 - December 10</td>
+<td contenteditable="true" class="editable-cell">May 11, 2026</td>
+<td contenteditable="true" class="editable-cell">October 21, 2026</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1" contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4" contenteditable="true" class="editable-cell">Spring 2027</td>
+<td contenteditable="true" class="editable-cell">8 Week session: January 19 - March 14</td>
+<td contenteditable="true" class="editable-cell">October 12, 2026</td>
+<td contenteditable="true" class="editable-cell">January 21, 2027</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">16 Week session: January 19 - May 16</td>
+<td contenteditable="true" class="editable-cell">October 12, 2026</td>
+<td contenteditable="true" class="editable-cell">January 21, 2027</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">12 Week session: February 15 - May 16</td>
+<td contenteditable="true" class="editable-cell">October 12, 2026</td>
+<td contenteditable="true" class="editable-cell">February 16, 2027</td>
+</tr>
+<tr>
+<td contenteditable="true" class="editable-cell">8 Week session: March 22 - May 16</td>
+<td contenteditable="true" class="editable-cell">October 12, 2026</td>
+<td contenteditable="true" class="editable-cell">March 23, 2027</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1" contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+<td contenteditable="true" class="editable-cell"></td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1" contenteditable="true" class="editable-cell">Summer 2027</td>
+<td contenteditable="true" class="editable-cell">12 Week session: May 1 - August 1<br></td>
+<td contenteditable="true" class="editable-cell">March 1</td>
+<td contenteditable="true" class="editable-cell">May 5</td>
+</tr>
+<tr>
+<td colspan="4" rowspan="2" contenteditable="true" class="editable-cell">*Credit students can find their <a href="https://admissions.austincc.edu/registration/registration-important-dates/">first date of registration here</a>.For late registration <a href="https://liberalarts.austincc.edu/esol/wp-content/uploads/sites/3/2023/01/ESOL_Contact_Flyer.pdf">visit the ESOL department</a> or email <a href="mailto:ESOL@austincc.edu">ESOL@austincc.edu</a></td>
+</tr>
+</tbody>
+</table>
+&nbsp;</div>
+                    </div>
+                </div>
+
+                <!-- 3. RAW HTML CODE VIEW -->
+                <div id="panel-code" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Generated Clean HTML Markup</span>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-import-html" class="px-3 py-1 text-xs font-medium bg-slate-200 hover:bg-slate-300 text-slate-700 rounded transition flex items-center gap-1">
+                                <i class="fa-solid fa-file-import"></i> Re-Import Changes
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="raw-code-textarea" rows="18" class="w-full font-mono text-xs p-4 bg-slate-900 text-emerald-400 rounded-xl shadow-inner border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" spellcheck="false"></textarea>
+                </div>
+
+                <!-- Live Clean Output Preview Card (Visible below editing controls) -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                Live Output Preview
+                            </span>
+                            <span class="text-xs text-slate-400">This is exactly how your website table will render</span>
+                        </div>
+                        <button id="btn-copy-preview" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                            <i class="fa-regular fa-copy"></i> Copy Output HTML
+                        </button>
+                    </div>
+
+                    <div id="live-preview-box" class="p-6 bg-slate-50/80 border border-slate-200 rounded-xl overflow-x-auto shadow-inner"><h2><strong>Dates for Classes and Registration</strong></h2>
+<table dir="ltr" style="height: 458px;" border="1" width="601" cellspacing="0" cellpadding="0"><colgroup> <col width="143"> <col width="465"> <col width="163"> <col width="163"> </colgroup>
+<tbody>
+<tr>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Semester&quot;}">Semester</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Sessions&quot;}">Session</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Opens&quot;}">*Registration Opens</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Closes&quot;}">Registration Closes</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4">Fall 2026</td>
+<td>16 Week session: August 24 - December 10</td>
+<td>May 11, 2026</td>
+<td>August 27, 2026</td>
+</tr>
+<tr>
+<td>12 Week session: September 21 - December 10</td>
+<td>May 11, 2026</td>
+<td>September 24, 2026</td>
+</tr>
+<tr>
+<td>8 Week session: August 24 - October 15</td>
+<td>May 11, 2026</td>
+<td>August 27, 2026</td>
+</tr>
+<tr>
+<td>8 Week session: October 19 - December 10</td>
+<td>May 11, 2026</td>
+<td>October 21, 2026</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1"></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4">Spring 2027</td>
+<td>8 Week session: January 19 - March 14</td>
+<td>October 12, 2026</td>
+<td>January 21, 2027</td>
+</tr>
+<tr>
+<td>16 Week session: January 19 - May 16</td>
+<td>October 12, 2026</td>
+<td>January 21, 2027</td>
+</tr>
+<tr>
+<td>12 Week session: February 15 - May 16</td>
+<td>October 12, 2026</td>
+<td>February 16, 2027</td>
+</tr>
+<tr>
+<td>8 Week session: March 22 - May 16</td>
+<td>October 12, 2026</td>
+<td>March 23, 2027</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1"></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1">Summer 2027</td>
+<td>12 Week session: May 1 - August 1</td>
+<td>March 1</td>
+<td>May 5</td>
+</tr>
+<tr>
+<td colspan="4" rowspan="2">*Credit students can find their <a href="https://admissions.austincc.edu/registration/registration-important-dates/">first date of registration here</a>.For late registration <a href="https://liberalarts.austincc.edu/esol/wp-content/uploads/sites/3/2023/01/ESOL_Contact_Flyer.pdf">visit the ESOL department</a> or email <a href="mailto:ESOL@austincc.edu">ESOL@austincc.edu</a></td>
+</tr>
+</tbody>
+</table>
+&nbsp;</div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Insert Link Modal Dialog -->
+    <div id="link-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-5 transform scale-95 transition-transform duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-link text-blue-600"></i> Insert Hyperlink
+                </h3>
+                <button type="button" onclick="closeLinkModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Link Destination URL / Mailto</label>
+                    <input type="text" id="modal-link-url" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="https://admissions.austincc.edu or mailto:esol@austincc.edu">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="closeLinkModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                <button type="button" onclick="applyLinkModal()" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition">Insert Link</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial HTML template provided by user
+        const INITIAL_HTML = `<h2><strong>Dates for Classes and Registration</strong></h2>
+<table dir="ltr" style="height: 458px;" border="1" width="601" cellspacing="0" cellpadding="0"><colgroup> <col width="143" /> <col width="465" /> <col width="163" /> <col width="163" /> </colgroup>
+<tbody>
+<tr>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Semester&quot;}">Semester</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Sessions&quot;}">Session</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Opens&quot;}">*Registration Opens</td>
+<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;Registration Closes&quot;}">Registration Closes</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4">Fall 2026</td>
+<td>16 Week session: August 24 - December 10</td>
+<td>May 11, 2026</td>
+<td>August 27, 2026</td>
+</tr>
+<tr>
+<td>12 Week session: September 21 - December 10</td>
+<td>May 11, 2026</td>
+<td>September 24, 2026</td>
+</tr>
+<tr>
+<td>8 Week session: August 24 - October 15</td>
+<td>May 11, 2026</td>
+<td>August 27, 2026</td>
+</tr>
+<tr>
+<td>8 Week session: October 19 - December 10</td>
+<td>May 11, 2026</td>
+<td>October 21, 2026</td>
+</tr>
+<tr>
+<td colspan="1" rowspan="1"></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="1" rowspan="4">Spring 2027</td>
+<td>8 Week session: January 19 - March 14</td>
+<td>October 12, 2026</td>
+<td>January 21, 2027</td>
+</tr>
+<tr>
+<td>16 Week session: January 19 - May 16</td>
+<td>October 12, 2026</td>
+<td>January 21, 2027</td>
+</tr>
+<tr>
+<td>12 Week session: February 15 - May 16</td>
+<td>October 12, 2026</td>
+<td>February 16, 2027</td>
+</tr>
+<tr>
+<td>8 Week session: March 22 - May 16</td>
+<td>October 12, 2026</td>
+<td>March 23, 2027</td>
+</tr>
+<tr>
+<td colspan="4" rowspan="2" data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;For late registration visit the ESOL department or email ESOL@austincc.edu&quot;}">*Credit students can find their <a href="https://admissions.austincc.edu/registration/registration-important-dates/">first date of registration here</a>.For late registration <a href="https://liberalarts.austincc.edu/esol/wp-content/uploads/sites/3/2023/01/ESOL_Contact_Flyer.pdf">visit the ESOL department</a> or email <a href="mailto:ESOL@austincc.edu">ESOL@austincc.edu</a></td>
+</tr>
+</tbody>
+</table>
+&nbsp;`;
+
+        // Data model state
+        let tableData = {
+            title: "Dates for Classes and Registration",
+            headers: ["Semester", "Session", "*Registration Opens", "Registration Closes"],
+            semesters: [
+                {
+                    name: "Fall 2026",
+                    sessions: [
+                        { name: "16 Week session: August 24 - December 10", opens: "May 11, 2026", closes: "August 27, 2026" },
+                        { name: "12 Week session: September 21 - December 10", opens: "May 11, 2026", closes: "September 24, 2026" },
+                        { name: "8 Week session: August 24 - October 15", opens: "May 11, 2026", closes: "August 27, 2026" },
+                        { name: "8 Week session: October 19 - December 10", opens: "May 11, 2026", closes: "October 21, 2026" }
+                    ]
+                },
+                {
+                    name: "Spring 2027",
+                    sessions: [
+                        { name: "8 Week session: January 19 - March 14", opens: "October 12, 2026", closes: "January 21, 2027" },
+                        { name: "16 Week session: January 19 - May 16", opens: "October 12, 2026", closes: "January 21, 2027" },
+                        { name: "12 Week session: February 15 - May 16", opens: "October 12, 2026", closes: "February 16, 2027" },
+                        { name: "8 Week session: March 22 - May 16", opens: "October 12, 2026", closes: "March 23, 2027" }
+                    ]
+                }
+            ],
+            footerNote: `*Credit students can find their <a href="https://admissions.austincc.edu/registration/registration-important-dates/">first date of registration here</a>.For late registration <a href="https://liberalarts.austincc.edu/esol/wp-content/uploads/sites/3/2023/01/ESOL_Contact_Flyer.pdf">visit the ESOL department</a> or email <a href="mailto:ESOL@austincc.edu">ESOL@austincc.edu</a>`
+        };
+
+        // Parser function to initialize state from HTML if required
+        function parseHTMLToState(htmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+
+            // Extract Title
+            const h2 = doc.querySelector('h2');
+            if (h2) {
+                tableData.title = h2.innerText.trim();
+            }
+
+            const table = doc.querySelector('table');
+            if (!table) return;
+
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            if (rows.length === 0) return;
+
+            // Row 0 is header
+            const headerCds = Array.from(rows[0].querySelectorAll('td, th'));
+            if (headerCds.length >= 4) {
+                tableData.headers = headerCds.slice(0, 4).map(td => td.innerText.trim());
+            }
+
+            const semesters = [];
+            let currentSemester = null;
+
+            for (let i = 1; i < rows.length; i++) {
+                const tr = rows[i];
+                const cells = Array.from(tr.querySelectorAll('td'));
+
+                // Check for footer note cell
+                const footerTd = cells.find(td => td.getAttribute('colspan') === '4' || td.getAttribute('colspan') === 4);
+                if (footerTd) {
+                    tableData.footerNote = footerTd.innerHTML.trim();
+                    continue;
+                }
+
+                // Check for spacer row
+                if (cells.length === 4 && cells.every(c => c.innerText.trim() === '')) {
+                    continue;
+                }
+
+                // Normal row parsing
+                if (cells.length === 4) {
+                    // Start of new semester
+                    const semName = cells[0].innerText.trim();
+                    if (semName) {
+                        currentSemester = {
+                            name: semName,
+                            sessions: []
+                        };
+                        semesters.push(currentSemester);
+                    }
+                    if (currentSemester) {
+                        currentSemester.sessions.push({
+                            name: cells[1].innerText.trim(),
+                            opens: cells[2].innerText.trim(),
+                            closes: cells[3].innerText.trim()
+                        });
+                    }
+                } else if (cells.length === 3 && currentSemester) {
+                    // Continuation session row under current semester
+                    currentSemester.sessions.push({
+                        name: cells[0].innerText.trim(),
+                        opens: cells[1].innerText.trim(),
+                        closes: cells[2].innerText.trim()
+                    });
+                }
+            }
+
+            if (semesters.length > 0) {
+                tableData.semesters = semesters;
+            }
+        }
+
+        // Generator function that outputs exact clean HTML matching user structure
+        function generateHTML() {
+            let html = `<h2><strong>${escapeHtml(tableData.title)}</strong></h2>\n`;
+            html += `<table dir="ltr" style="height: 458px;" border="1" width="601" cellspacing="0" cellpadding="0"><colgroup> <col width="143" /> <col width="465" /> <col width="163" /> <col width="163" /> </colgroup>\n`;
+            html += `<tbody>\n`;
+
+            // Header Row
+            html += `<tr>\n`;
+            tableData.headers.forEach((hdr, idx) => {
+                const attrKey = idx === 0 ? "Semester" : idx === 1 ? "Sessions" : idx === 2 ? "Registration Opens" : "Registration Closes";
+                html += `<td data-sheets-value="{&quot;1&quot;:2,&quot;2&quot;:&quot;${attrKey}&quot;}">${escapeHtml(hdr)}</td>\n`;
+            });
+            html += `</tr>\n`;
+
+            // Semester Blocks
+            tableData.semesters.forEach((sem, sIdx) => {
+                const sessionCount = sem.sessions.length || 1;
+
+                sem.sessions.forEach((session, rIdx) => {
+                    html += `<tr>\n`;
+                    if (rIdx === 0) {
+                        html += `<td colspan="1" rowspan="${sessionCount}">${escapeHtml(sem.name)}</td>\n`;
+                    }
+                    html += `<td>${escapeHtml(session.name)}</td>\n`;
+                    html += `<td>${escapeHtml(session.opens)}</td>\n`;
+                    html += `<td>${escapeHtml(session.closes)}</td>\n`;
+                    html += `</tr>\n`;
+                });
+
+                // Spacer row between semesters except after last
+                if (sIdx < tableData.semesters.length - 1) {
+                    html += `<tr>\n<td colspan="1" rowspan="1"></td>\n<td></td>\n<td></td>\n<td></td>\n</tr>\n`;
+                }
+            });
+
+            // Footer Note Row
+            html += `<tr>\n`;
+            html += `<td colspan="4" rowspan="2">${tableData.footerNote}</td>\n`;
+            html += `</tr>\n`;
+
+            html += `</tbody>\n</table>\n&nbsp;`;
+
+            return html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Render Form Mode
+        function renderFormMode() {
+            document.getElementById('input-title').value = tableData.title;
+            
+            tableData.headers.forEach((hdr, idx) => {
+                const el = document.getElementById(`hdr-${idx}`);
+                if (el) el.value = hdr;
+            });
+
+            const semContainer = document.getElementById('semester-sections-container');
+            semContainer.innerHTML = '';
+
+            tableData.semesters.forEach((sem, sIdx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4';
+
+                let sessionRowsHtml = '';
+                sem.sessions.forEach((sess, rIdx) => {
+                    sessionRowsHtml += `
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Session Name & Dates</label>
+                                <input type="text" value="${escapeHtml(sess.name)}" onchange="updateSession(${sIdx}, ${rIdx}, 'name', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Opens</label>
+                                <input type="text" value="${escapeHtml(sess.opens)}" onchange="updateSession(${sIdx}, ${rIdx}, 'opens', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-0.5">Registration Closes</label>
+                                <input type="text" value="${escapeHtml(sess.closes)}" onchange="updateSession(${sIdx}, ${rIdx}, 'closes', this.value)" class="w-full text-xs p-2 border border-slate-300 rounded bg-white">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end">
+                                <button type="button" onclick="deleteSession(${sIdx}, ${rIdx})" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="Delete Session Row">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3 flex-1 max-w-sm">
+                            <i class="fa-solid fa-calendar-days text-blue-600"></i>
+                            <input type="text" value="${escapeHtml(sem.name)}" onchange="updateSemesterName(${sIdx}, this.value)" class="text-base font-bold text-slate-800 px-2 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 w-full" placeholder="Semester Name (e.g., Fall 2026)">
+                        </div>
+                        <button type="button" onclick="deleteSemester(${sIdx})" class="text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash"></i> Delete Block
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        ${sessionRowsHtml}
+                    </div>
+
+                    <button type="button" onclick="addSession(${sIdx})" class="text-xs font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus text-xs"></i> Add Session Row
+                    </button>
+                `;
+
+                semContainer.appendChild(card);
+            });
+
+            document.getElementById('input-footer-note').innerHTML = tableData.footerNote;
+        }
+
+        // Render WYSIWYG Interactive Table Canvas
+        function renderWYSIWYGMode() {
+            const container = document.getElementById('rendered-table-container');
+            const cleanHtml = generateHTML();
+            container.innerHTML = cleanHtml;
+
+            // Make editable
+            const h2 = container.querySelector('h2');
+            if (h2) {
+                h2.contentEditable = "true";
+                h2.classList.add('editable-cell', 'p-1', 'rounded');
+                h2.oninput = () => {
+                    tableData.title = h2.innerText.trim();
+                    syncAll();
+                };
+            }
+
+            const tds = container.querySelectorAll('td');
+            tds.forEach(td => {
+                td.contentEditable = "true";
+                td.classList.add('editable-cell');
+            });
+
+            // Re-bind contentEditable listeners back to state
+            bindCanvasToState(container);
+        }
+
+        function bindCanvasToState(container) {
+            const table = container.querySelector('table');
+            if (!table) return;
+
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            if (rows.length === 0) return;
+
+            // Listen to any input on table
+            table.addEventListener('input', () => {
+                parseHTMLToState(container.innerHTML);
+                renderLivePreview();
+                updateCodeOutput();
+            });
+        }
+
+        // Render Live Preview Output Box
+        function renderLivePreview() {
+            const previewBox = document.getElementById('live-preview-box');
+            previewBox.innerHTML = generateHTML();
+        }
+
+        // Update Textarea Code View
+        function updateCodeOutput() {
+            const textarea = document.getElementById('raw-code-textarea');
+            textarea.value = generateHTML();
+        }
+
+        // Data Mutation Handlers
+        function updateSemesterName(sIdx, name) {
+            tableData.semesters[sIdx].name = name;
+            syncAll();
+        }
+
+        function updateSession(sIdx, rIdx, field, value) {
+            tableData.semesters[sIdx].sessions[rIdx][field] = value;
+            syncAll();
+        }
+
+        function addSession(sIdx) {
+            tableData.semesters[sIdx].sessions.push({
+                name: "New Session: Dates",
+                opens: "TBD",
+                closes: "TBD"
+            });
+            syncAll();
+        }
+
+        function deleteSession(sIdx, rIdx) {
+            if (tableData.semesters[sIdx].sessions.length <= 1) {
+                showToast("A semester must have at least 1 session row.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+            tableData.semesters[sIdx].sessions.splice(rIdx, 1);
+            syncAll();
+        }
+
+        function addSemester() {
+            tableData.semesters.push({
+                name: "Summer " + (new Date().getFullYear() + 1),
+                sessions: [
+                    { name: "12 Week session: May 1 - August 1", opens: "March 1", closes: "May 5" }
+                ]
+            });
+            syncAll();
+        }
+
+        function deleteSemester(sIdx) {
+            if (tableData.semesters.length <= 1) {
+                showToast("Table must have at least one semester.", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+            tableData.semesters.splice(sIdx, 1);
+            syncAll();
+        }
+
+        // Central synchronization caller
+        function syncAll() {
+            renderLivePreview();
+            updateCodeOutput();
+            // If in visual mode, re-render visual canvas
+            if (!document.getElementById('panel-wysiwyg').classList.contains('hidden')) {
+                renderWYSIWYGMode();
+            }
+        }
+
+        // Rich Text Formatting Tools
+        function formatText(command, value = null) {
+            document.execCommand(command, false, value);
+            // Trigger input sync
+            const activePanel = document.querySelector('.editable-cell:focus');
+            if (activePanel) {
+                activePanel.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+
+        let savedSelection = null;
+
+        function saveSelection() {
+            if (window.getSelection) {
+                const sel = window.getSelection();
+                if (sel.getRangeAt && sel.rangeCount) {
+                    return sel.getRangeAt(0);
+                }
+            }
+            return null;
+        }
+
+        function restoreSelection(range) {
+            if (range && window.getSelection) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+
+        function openLinkModal() {
+            savedSelection = saveSelection();
+            const modal = document.getElementById('link-modal');
+            const input = document.getElementById('modal-link-url');
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('.transform').classList.remove('scale-95');
+                input.focus();
+            }, 10);
+        }
+
+        function closeLinkModal() {
+            const modal = document.getElementById('link-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('.transform').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function applyLinkModal() {
+            const url = document.getElementById('modal-link-url').value.trim();
+            closeLinkModal();
+            if (url) {
+                restoreSelection(savedSelection);
+                formatText('createLink', url);
+            }
+        }
+
+        // Toast message popup
+        function showToast(msg, icon = "fa-circle-check", iconColor = "text-emerald-400") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${icon} ${iconColor} text-lg`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        // Copy HTML Code to Clipboard
+        function copyHTMLToClipboard() {
+            const htmlText = generateHTML();
+            
+            // Create off-screen textarea for reliable execCommand copy
+            const el = document.createElement('textarea');
+            el.value = htmlText;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast("HTML code copied to clipboard!");
+        }
+
+        // Tab switching logic
+        function setupTabs() {
+            const tabStructured = document.getElementById('tab-structured');
+            const tabWysiwyg = document.getElementById('tab-wysiwyg');
+            const tabCode = document.getElementById('tab-code');
+
+            const panelStructured = document.getElementById('panel-structured');
+            const panelWysiwyg = document.getElementById('panel-wysiwyg');
+            const panelCode = document.getElementById('panel-code');
+
+            const toolbar = document.getElementById('wysiwyg-toolbar');
+
+            function setActiveTab(activeBtn, activePanel) {
+                [tabStructured, tabWysiwyg, tabCode].forEach(btn => {
+                    btn.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+                    btn.classList.add('text-slate-600');
+                });
+                [panelStructured, panelWysiwyg, panelCode].forEach(p => p.classList.add('hidden'));
+
+                activeBtn.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600');
+                activePanel.classList.remove('hidden');
+
+                if (activePanel === panelWysiwyg) {
+                    toolbar.classList.remove('opacity-50', 'pointer-events-none');
+                    renderWYSIWYGMode();
+                } else {
+                    toolbar.classList.add('opacity-50', 'pointer-events-none');
+                }
+
+                if (activePanel === panelStructured) {
+                    renderFormMode();
+                }
+            }
+
+            tabStructured.addEventListener('click', () => setActiveTab(tabStructured, panelStructured));
+            tabWysiwyg.addEventListener('click', () => setActiveTab(tabWysiwyg, panelWysiwyg));
+            tabCode.addEventListener('click', () => {
+                setActiveTab(tabCode, panelCode);
+                updateCodeOutput();
+            });
+        }
+
+        // Initialize application logic on window load
+        window.onload = function() {
+            // Parse initial provided HTML
+            parseHTMLToState(INITIAL_HTML);
+
+            // Bind top title input
+            document.getElementById('input-title').addEventListener('input', (e) => {
+                tableData.title = e.target.value;
+                syncAll();
+            });
+
+            // Bind header inputs
+            [0, 1, 2, 3].forEach(idx => {
+                document.getElementById(`hdr-${idx}`).addEventListener('input', (e) => {
+                    tableData.headers[idx] = e.target.value;
+                    syncAll();
+                });
+            });
+
+            // Bind footer note editable
+            const footerEl = document.getElementById('input-footer-note');
+            footerEl.addEventListener('input', () => {
+                tableData.footerNote = footerEl.innerHTML;
+                syncAll();
+            });
+
+            // Buttons
+            document.getElementById('btn-add-semester').addEventListener('click', addSemester);
+            document.getElementById('btn-copy-code').addEventListener('click', copyHTMLToClipboard);
+            document.getElementById('btn-copy-preview').addEventListener('click', copyHTMLToClipboard);
+
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                parseHTMLToState(INITIAL_HTML);
+                renderFormMode();
+                syncAll();
+                showToast("Reset to initial schedule table", "fa-rotate-left", "text-blue-400");
+            });
+
+            document.getElementById('btn-import-html').addEventListener('click', () => {
+                const raw = document.getElementById('raw-code-textarea').value;
+                parseHTMLToState(raw);
+                renderFormMode();
+                syncAll();
+                showToast("HTML re-imported successfully!");
+            });
+
+            setupTabs();
+            renderFormMode();
+            renderLivePreview();
+            updateCodeOutput();
+        };
+    </script>
+
+</body></html>
